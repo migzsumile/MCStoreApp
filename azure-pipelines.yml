@@ -1,0 +1,82 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master   # or your branch
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+- group: angularstore-prod
+
+steps:
+# Install Node.js 22.23.0 (pinned version)
+- task: NodeTool@0
+  inputs:
+    versionSpec: '22.23.x'
+  displayName: 'Install Node.js 22.23.0'
+
+- script: |
+    node <<'NODE'
+    const fs = require('node:fs');
+
+    const required = [
+      'API_URL',
+      'AZURE_AD_CLIENT_ID',
+      'AZURE_AD_AUTHORITY',
+      'AZURE_AD_REDIRECT_URI',
+      'AZURE_AD_SCOPE'
+    ];
+
+    for (const name of required) {
+      if (!process.env[name]) {
+        throw new Error(`Missing pipeline variable: ${name}`);
+      }
+    }
+
+    const environment = {
+      production: true,
+      apiUrl: process.env.API_URL,
+      azureAd: {
+        clientId: process.env.AZURE_AD_CLIENT_ID,
+        authority: process.env.AZURE_AD_AUTHORITY,
+        redirectUri: process.env.AZURE_AD_REDIRECT_URI,
+        scopes: [process.env.AZURE_AD_SCOPE]
+      }
+    };
+
+    fs.writeFileSync(
+      'src/environments/environment.prod.ts',
+      `export const environment = ${JSON.stringify(environment, null, 2)};\n`
+    );
+    NODE
+  displayName: 'Generate production environment'
+  env:
+    API_URL: $(API_URL)
+    AZURE_AD_CLIENT_ID: $(AZURE_AD_CLIENT_ID)
+    AZURE_AD_AUTHORITY: $(AZURE_AD_AUTHORITY)
+    AZURE_AD_REDIRECT_URI: $(AZURE_AD_REDIRECT_URI)
+    AZURE_AD_SCOPE: $(AZURE_AD_SCOPE)
+
+# Verify Node version
+- script: node -v
+  displayName: 'Check Node.js version'
+
+# Clean install and build Angular 22 app
+- script: |
+    npm ci
+    npm install -g @angular/cli@22
+    ng version
+    ng build --configuration production
+  displayName: 'Build Angular App'
+
+# Deploy to Azure Static Web Apps
+- task: AzureStaticWebApp@0
+  inputs:
+    app_location: "dist/angularstore/browser"   # point directly to built output
+    output_location: ""                         # leave empty since already built
+    skip_app_build: true                        # prevents task from re-running ng build
+    azure_static_web_apps_api_token: $(deployment_token)

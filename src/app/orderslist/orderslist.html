@@ -1,0 +1,136 @@
+<div class="min-h-screen bg-slate-100 p-4 sm:p-6">
+  <div class="max-w-7xl mx-auto space-y-6">
+    <div class="rounded-[28px] border border-slate-200 bg-white shadow-sm overflow-hidden">
+      <div class="bg-slate-50 px-6 py-6 sm:px-8 sm:py-8">
+        <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div class="flex-1">
+            <div class="grid gap-4 sm:grid-cols-3">
+              <div>
+                <label for="searchString" class="block text-sm font-semibold text-slate-700 mb-2">Search</label>
+                <input
+                  id="searchString"
+                  type="text"
+                  [ngModel]="searchString()"
+                  (ngModelChange)="searchString.set($event)"
+                  placeholder="Product code or product name or comments"
+                  class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 shadow-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-200 transition"
+                />
+              </div>
+              <div>
+                <label for="transactionDate" class="block text-sm font-semibold text-slate-700 mb-2">Transaction Date</label>
+                <input
+                  id="transactionDate"
+                  type="date"
+                  [ngModel]="transactionDate()"
+                  (ngModelChange)="transactionDate.set($event)"
+                  class="w-full rounded-2xl border border-slate-300 bg-white px-4 py-3 text-slate-900 shadow-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-200 transition"
+                />
+              </div>
+              <div class="flex flex-col justify-end gap-3 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  (click)="searchOrders()"
+                  class="rounded-2xl bg-orange-500 px-5 py-3 text-sm font-semibold text-white shadow-sm hover:bg-orange-600 transition"
+                >
+                  Search
+                </button>
+                <button
+                  type="button"
+                  (click)="clearFilters()"
+                  class="rounded-2xl border border-slate-300 bg-white px-5 py-3 text-sm font-semibold text-slate-700 hover:bg-slate-100 transition"
+                >
+                  Clear
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:w-auto">
+            <div class="rounded-3xl border border-orange-200 bg-orange-50 p-4">
+              <div class="text-xs font-semibold uppercase tracking-[0.25em] text-orange-600">Orders</div>
+              <div class="mt-3 text-3xl font-semibold text-slate-900">{{ totalCount() }}</div>
+            </div>
+            <div class="rounded-3xl border border-slate-200 bg-slate-50 p-4">
+              <div class="text-xs font-semibold uppercase tracking-[0.25em] text-slate-500">Page</div>
+              <div class="mt-3 text-3xl font-semibold text-slate-900">{{ pageNumber() }} / {{ totalPages() }}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="overflow-x-auto">
+        @if (loading()) {
+          <div class="flex justify-center items-center py-16">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500"></div>
+            <span class="ml-4 text-slate-600">Loading orders...</span>
+          </div>
+        } @else {
+          <table class="min-w-full divide-y divide-slate-200">
+            <thead class="bg-slate-100 text-left text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+              <tr>
+                <th class="px-4 py-4">Order #</th>
+                <th class="px-4 py-4">Invoice #</th>
+                <th class="px-4 py-4">Product Code</th>
+                <th class="px-4 py-4">Product Name</th>
+                <th class="px-4 py-4">Unit Price</th>
+                <th class="px-4 py-4">Quantity</th>
+                <th class="px-4 py-4">Total Price</th>
+                <th class="px-4 py-4">Transaction Date</th>
+                <th class="px-4 py-4">Comments</th>
+                <th class="px-4 py-4">Status</th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-slate-200">
+              @if (orderItems().length === 0) {
+                <tr>
+                  <td colspan="10" class="px-4 py-12 text-center text-slate-500">
+                    No orders found. Adjust the filters or clear them to load all orders.
+                  </td>
+                </tr>
+              } @else {
+                @for (order of orderItems(); track order.orderId) {
+                  <tr>
+                    <td class="px-4 py-4 text-sm font-medium text-slate-900">{{ order.orderId }}</td>
+                    <td class="px-4 py-4 text-sm text-slate-700">{{ order.invoiceId }}</td>
+                    <td class="px-4 py-4 text-sm text-slate-700">{{ order.productCode }}</td>
+                    <td class="px-4 py-4 text-sm text-slate-700">{{ order.productName }}</td>
+                    <td class="px-4 py-4 text-sm text-slate-700">₱{{ order.unitPrice | number:'1.2-2' }}</td>
+                    <td class="px-4 py-4 text-sm text-slate-700">{{ order.quantity | number:'1.0-2' }}</td>
+                    <td class="px-4 py-4 text-sm text-slate-700">₱{{ order.totalPrice | number:'1.2-2' }}</td>
+                    <td class="px-4 py-4 text-sm text-slate-700">{{ order.transactionDate | date:'mediumDate' }}</td>
+                    <td class="px-4 py-4 text-sm text-slate-700">{{ order.comments }}</td>
+                    <td class="px-4 py-4 text-sm text-slate-700">{{ order.orderStatus }}</td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        }
+      </div>
+
+      <div class="bg-slate-50 px-6 py-6 sm:px-8 sm:py-8">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div class="text-sm text-slate-600">Showing page {{ pageNumber() }} of {{ totalPages() }}</div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              (click)="goToPage(pageNumber() - 1)"
+              [disabled]="pageNumber() === 1"
+              class="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <button
+              type="button"
+              (click)="goToPage(pageNumber() + 1)"
+              [disabled]="pageNumber() === totalPages()"
+              class="rounded-2xl border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-100 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

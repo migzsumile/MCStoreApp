@@ -1,0 +1,57 @@
+/* Custom styles for product component */
+
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Custom scrollbar for modal */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Ensure the main flex container can shrink without forcing page scroll */
+.product-fullscreen-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+/* Compact table styles to fit more rows without vertical scroll */
+.product-table-compact th,
+.product-table-compact td {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+/* Hover style for rows */
+.product-table-compact tbody tr {
+  transition: background-color 120ms ease-in-out;
+}
+
+.product-table-compact tbody tr:hover {
+  background-color: #f3f4f6; /* gray-100 */
+}

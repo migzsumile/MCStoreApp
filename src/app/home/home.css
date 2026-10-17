@@ -1,0 +1,16 @@
+/* Home Component Custom Enhancements */
+:host {
+  display: block;
+  width: 100%;
+}
+
+.home-container {
+  scroll-behavior: smooth;
+}
+
+/* Ensure smooth transitions on cards and buttons */
+.home-container a,
+.home-container button {
+  touch-action: manipulation;
+}
+

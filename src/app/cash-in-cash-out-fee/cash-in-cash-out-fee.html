@@ -1,0 +1,120 @@
+<div class="fee-page">
+  <div class="fee-content">
+    <header class="fee-header app-page-header">
+      <h1>Cash In / Cash Out Fees</h1>
+      <div class="fee-actions">
+        <label class="search-field"><span class="sr-only">Search fee rules</span><input type="search" [ngModel]="searchTerm()" (ngModelChange)="searchTerm.set($event); onSearchChange()" placeholder="Search product or code..."></label>
+        <button class="primary-button" type="button" (click)="openAddModal()">+ Add fee rule</button>
+      </div>
+    </header>
+
+    @if (loading()) { <div class="loading" role="status">Loading fee rules...</div> } @else {
+      <div class="table-wrap"><table>
+        <thead><tr><th>ID</th><th>Product</th><th>Wallet Name</th><th>Operator</th><th>Start amount</th><th>End amount</th><th>Fee</th><th>Action</th></tr></thead>
+        <tbody>
+          @for (fee of displayedFees(); track fee.id) {
+            <tr>
+              <td>{{ fee.id }}</td>
+              <td><strong>{{ fee.productName || 'Product #' + fee.productId }}</strong><small>{{ fee.productCode }}</small></td>
+              <td><span class="wallet-badge">{{ getWalletDisplayName(fee) }}</span></td>
+              <td><span class="operator-badge">{{ getOperatorDisplayName(fee.operator) }}</span></td>
+              <td>{{ fee.startAmount | number:'1.2-2' }}</td>
+              <td>{{ fee.endAmount | number:'1.2-2' }}</td>
+              <td>{{ fee.fee | number:'1.2-2' }}</td>
+              <td class="actions">
+                <button type="button" class="icon-button edit" (click)="openEditModal(fee)" aria-label="Edit fee rule">Edit</button>
+                <button type="button" class="icon-button delete" (click)="deleteFee(fee)" aria-label="Delete fee rule">Delete</button>
+              </td>
+            </tr>
+          } @empty { <tr><td class="empty" colspan="8">No fee rules found.</td></tr> }
+        </tbody>
+      </table></div>
+    }
+
+    <footer class="pagination"><span>Page {{ currentPage() }} of {{ totalPages() }} · {{ totalFees() }} rules</span><div><button type="button" (click)="prevPage()" [disabled]="currentPage() === 1">Previous</button>@for (page of getPagesArray(); track page) {<button type="button" (click)="goToPage(page)" [class.current]="page === currentPage()">{{ page }}</button>}<button type="button" (click)="nextPage()" [disabled]="currentPage() === totalPages()">Next</button></div></footer>
+  </div>
+</div>
+
+@if (showModal()) {
+  <div class="modal-backdrop">
+    <section class="modal" [class.large]="!isEditing()" role="dialog" aria-modal="true" aria-labelledby="fee-modal-title">
+      <h2 id="fee-modal-title">{{ isEditing() ? 'Edit fee rule' : 'Add fee rules' }}</h2>
+      @if (isEditing()) {
+        <div class="form-grid">
+          <label>Product Code<input type="text" [disabled]="isEditing()" [ngModel]="form().productCode" (ngModelChange)="updateForm('productCode', $event)"></label>
+          <label>Fee<input type="number" min="0" step="0.01" [ngModel]="form().fee" (ngModelChange)="updateForm('fee', $event)"></label>
+          <label>Wallet Name
+            <select [ngModel]="form().walletBalanceId" (ngModelChange)="updateForm('walletBalanceId', $event)">
+              <option [ngValue]="null">-- Select Wallet --</option>
+              @for (wallet of walletBalances(); track wallet.id) {
+                <option [ngValue]="wallet.id">{{ wallet.walletName }}</option>
+              }
+            </select>
+          </label>
+          <label>Operator
+            <select [ngModel]="form().operator" (ngModelChange)="updateForm('operator', $event)">
+              @for (op of operatorOptions; track op.value) {
+                <option [ngValue]="op.value">{{ op.label }}</option>
+              }
+            </select>
+          </label>
+          <label>Start amount<input type="number" min="0" step="0.01" [ngModel]="form().startAmount" (ngModelChange)="updateForm('startAmount', $event)"></label>
+          <label>End amount<input type="number" min="0" step="0.01" [ngModel]="form().endAmount" (ngModelChange)="updateForm('endAmount', $event)"></label>
+        </div>
+      } @else {
+        <div class="modal-table-wrap">
+          <table class="modal-table">
+            <thead>
+              <tr>
+                <th style="width: 35px;">#</th>
+                <th>Product Code *</th>
+                <th>Wallet Name</th>
+                <th>Operator</th>
+                <th>Start Amount</th>
+                <th>End Amount</th>
+                <th>Fee</th>
+                <th style="width: 70px; text-align: center;">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of feeRows(); track $index; let i = $index) {
+                <tr>
+                  <td>{{ i + 1 }}</td>
+                  <td><input type="text" placeholder="e.g. GCASH" [ngModel]="row.productCode" (ngModelChange)="updateRow(i, 'productCode', $event)"></td>
+                  <td>
+                    <select [ngModel]="row.walletBalanceId" (ngModelChange)="updateRow(i, 'walletBalanceId', $event)">
+                      <option [ngValue]="null">Select Wallet</option>
+                      @for (wallet of walletBalances(); track wallet.id) {
+                        <option [ngValue]="wallet.id">{{ wallet.walletName }}</option>
+                      }
+                    </select>
+                  </td>
+                  <td>
+                    <select [ngModel]="row.operator" (ngModelChange)="updateRow(i, 'operator', $event)">
+                      @for (op of operatorOptions; track op.value) {
+                        <option [ngValue]="op.value">{{ op.label }}</option>
+                      }
+                    </select>
+                  </td>
+                  <td><input type="number" min="0" step="0.01" [ngModel]="row.startAmount" (ngModelChange)="updateRow(i, 'startAmount', $event)"></td>
+                  <td><input type="number" min="0" step="0.01" [ngModel]="row.endAmount" (ngModelChange)="updateRow(i, 'endAmount', $event)"></td>
+                  <td><input type="number" min="0" step="0.01" [ngModel]="row.fee" (ngModelChange)="updateRow(i, 'fee', $event)"></td>
+                  <td style="text-align: center;">
+                    <button type="button" class="icon-button delete" (click)="removeRow(i)" aria-label="Remove row">Remove</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <p class="table-hint">* Required field. An empty row is always available; filling it automatically adds another row.</p>
+      }
+      <div class="modal-actions">
+        <button type="button" (click)="closeModal()">Cancel</button>
+        <button type="button" class="primary-button" (click)="saveFee()">{{ isEditing() ? 'Update' : 'Save All' }}</button>
+      </div>
+    </section>
+  </div>
+}
+@if (confirmationModal().open) { <div class="modal-backdrop"><section class="modal small" role="dialog" aria-modal="true"><h2>{{ confirmationModal().title }}</h2><p>{{ confirmationModal().message }}</p><div class="modal-actions"><button type="button" (click)="closeConfirmationModal()">Cancel</button><button type="button" class="primary-button" (click)="confirmAction()">Confirm</button></div></section></div> }
+@if (resultModal().open) { <div class="modal-backdrop"><section class="modal small" role="alertdialog" aria-modal="true"><h2>{{ resultModal().title }}</h2><p>{{ resultModal().message }}</p><div class="modal-actions"><button type="button" class="primary-button" (click)="closeResultModal()">OK</button></div></section></div> }

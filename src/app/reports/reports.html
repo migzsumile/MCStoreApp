@@ -1,0 +1,365 @@
+<div class="min-h-screen bg-slate-100 p-4 sm:p-6 lg:p-8">
+  <div class="max-w-7xl mx-auto space-y-6">
+
+    <!-- Header & Navigation Bar -->
+    <header class="app-page-header flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div>
+        <h1 class="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">Reports & Insights</h1>
+        <p class="text-sm text-slate-500 mt-1">Real-time performance analytics, sales summary, and stock valuation</p>
+      </div>
+
+      <!-- Report View Switching Tabs / Buttons -->
+      <div class="inline-flex rounded-2xl bg-white p-1.5 shadow-sm border border-slate-200 self-start sm:self-auto">
+        <button
+          type="button"
+          (click)="setActiveTab('all')"
+          [class]="activeTab() === 'all'
+            ? 'bg-orange-500 text-white font-semibold shadow-sm'
+            : 'text-slate-600 hover:text-slate-900 font-medium'"
+          class="rounded-xl px-4 py-2 text-sm transition-all duration-150">
+          All Reports
+        </button>
+        <button
+          type="button"
+          (click)="setActiveTab('sales')"
+          [class]="activeTab() === 'sales'
+            ? 'bg-orange-500 text-white font-semibold shadow-sm'
+            : 'text-slate-600 hover:text-slate-900 font-medium'"
+          class="rounded-xl px-4 py-2 text-sm transition-all duration-150">
+          Sales Report
+        </button>
+        <button
+          type="button"
+          (click)="setActiveTab('stock')"
+          [class]="activeTab() === 'stock'
+            ? 'bg-orange-500 text-white font-semibold shadow-sm'
+            : 'text-slate-600 hover:text-slate-900 font-medium'"
+          class="rounded-xl px-4 py-2 text-sm transition-all duration-150">
+          Stock Insights
+        </button>
+      </div>
+    </header>
+
+    <!-- Date Range & Duration Filter Card -->
+    <section class="rounded-[28px] border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+
+        <!-- Date Range Badges (Matching Screenshot Design) -->
+        <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+          <div class="inline-flex items-center gap-2 rounded-xl bg-purple-900/90 text-white px-4 py-2.5 text-xs sm:text-sm font-semibold tracking-wider uppercase shadow-sm">
+            <svg class="w-4 h-4 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            <span>{{ formattedStartDateDisplay() }}</span>
+          </div>
+
+          <span class="text-slate-400 font-bold">to</span>
+
+          <div class="inline-flex items-center gap-2 rounded-xl bg-purple-900/90 text-white px-4 py-2.5 text-xs sm:text-sm font-semibold tracking-wider uppercase shadow-sm">
+            <svg class="w-4 h-4 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            <span>{{ formattedEndDateDisplay() }}</span>
+          </div>
+        </div>
+
+        <!-- Controls: Presets, Date Pickers, and Refresh Button -->
+        <div class="flex flex-wrap items-center gap-3">
+          <!-- Duration Preset Dropdown -->
+          <div class="flex items-center rounded-xl border border-slate-300 bg-slate-50 overflow-hidden shadow-sm">
+            <span class="px-3 text-xs font-semibold text-slate-500 uppercase tracking-wider whitespace-nowrap">Duration</span>
+            <select
+              [ngModel]="selectedDuration()"
+              (ngModelChange)="onDurationChange($event)"
+              class="bg-white px-3 py-2 text-sm font-medium text-slate-800 border-l border-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-400 cursor-pointer">
+              @for (opt of durationOptions; track opt.id) {
+                <option [value]="opt.id">{{ opt.label }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Date Pickers -->
+          <div class="flex items-center gap-2">
+            <input
+              type="date"
+              [ngModel]="startDate()"
+              (ngModelChange)="startDate.set($event); onCustomDateChange()"
+              class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs sm:text-sm text-slate-700 shadow-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-200"
+              aria-label="Start date"
+            />
+            <span class="text-slate-400 text-xs">-</span>
+            <input
+              type="date"
+              [ngModel]="endDate()"
+              (ngModelChange)="endDate.set($event); onCustomDateChange()"
+              class="rounded-xl border border-slate-300 bg-white px-3 py-2 text-xs sm:text-sm text-slate-700 shadow-sm focus:border-orange-500 focus:outline-none focus:ring-2 focus:ring-orange-200"
+              aria-label="End date"
+            />
+          </div>
+
+          <!-- Refresh / Reload Button -->
+          <button
+            type="button"
+            (click)="loadReports()"
+            [disabled]="isOverallLoading()"
+            class="inline-flex items-center gap-2 rounded-xl bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 text-sm font-semibold shadow-sm transition disabled:opacity-50 disabled:cursor-not-allowed">
+            @if (isOverallLoading()) {
+              <div class="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+              <span>Updating...</span>
+            } @else {
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+              </svg>
+              <span>Refresh</span>
+            }
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Main Reports Grid -->
+    <div class="grid grid-cols-1 gap-6" [class.lg:grid-cols-2]="activeTab() === 'all'">
+
+      <!-- ================= SALES REPORT SECTION ================= -->
+      @if (activeTab() === 'all' || activeTab() === 'sales') {
+        <section class="rounded-[28px] border border-slate-200 bg-white p-6 sm:p-8 shadow-sm flex flex-col justify-between space-y-6">
+          
+          <!-- Section Header -->
+          <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-fuchsia-600 to-pink-600 flex items-center justify-center text-white shadow-sm font-bold">
+                ₱
+              </div>
+              <div>
+                <h2 class="text-xl font-bold text-slate-900">Sales Report</h2>
+                <p class="text-xs text-slate-500">Revenue, cost of sales, margin & profit</p>
+              </div>
+            </div>
+            @if (salesLoading()) {
+              <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-orange-600 bg-orange-50 px-2.5 py-1 rounded-full">
+                <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
+                <span>Loading</span>
+              </div>
+            }
+          </div>
+
+          @if (salesError()) {
+            <div class="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 flex items-center justify-between">
+              <span>{{ salesError() }}</span>
+              <button type="button" (click)="loadSalesReport(startDate(), endDate())" class="font-semibold text-red-800 underline hover:no-underline">Retry</button>
+            </div>
+          }
+
+          <!-- Sales Cards Stack (Aligned with UI & Screenshot) -->
+          <div class="space-y-4">
+
+            <!-- Net Sales Card (with Click Me Breakdown Toggle) -->
+            <div class="rounded-2xl bg-purple-900 text-white p-5 sm:p-6 shadow-sm transition hover:shadow-md">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-xs font-bold uppercase tracking-widest text-purple-200">Net Sales</div>
+                  <div class="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight">
+                    ₱{{ totalNetSales() | number:'1.2-2' }}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  (click)="toggleNetSalesBreakdown()"
+                  class="inline-flex items-center gap-1 text-xs font-bold uppercase tracking-wider bg-fuchsia-600 hover:bg-fuchsia-500 text-white px-3 py-1.5 rounded-lg shadow-sm transition">
+                  <span>{{ showNetSalesBreakdown() ? 'Hide' : 'Click Me' }}</span>
+                  <svg class="w-3.5 h-3.5 transform transition-transform duration-200" [class.rotate-180]="showNetSalesBreakdown()" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Collapsible Net Sales Breakdown -->
+              @if (showNetSalesBreakdown()) {
+                <div class="mt-4 pt-4 border-t border-purple-800/60 grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs sm:text-sm">
+                  <div class="bg-purple-950/50 rounded-xl p-3">
+                    <div class="text-purple-300 font-medium">Normal Net Sales</div>
+                    <div class="text-base font-bold mt-1 text-white">₱{{ (salesReport()?.netSalesNormal ?? 0) | number:'1.2-2' }}</div>
+                  </div>
+                  <div class="bg-purple-950/50 rounded-xl p-3">
+                    <div class="text-purple-300 font-medium">Digital Net Sales</div>
+                    <div class="text-base font-bold mt-1 text-white">₱{{ (salesReport()?.netSalesDigital ?? 0) | number:'1.2-2' }}</div>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <!-- Cost of Product Sold Card -->
+            <div class="rounded-2xl bg-slate-50 border border-slate-200/80 p-5 sm:p-6 shadow-sm transition hover:shadow-md">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-xs font-bold uppercase tracking-widest text-slate-500">Cost of Product Sold</div>
+                  <div class="mt-2 text-2xl sm:text-3xl font-extrabold text-slate-800 tracking-tight">
+                    ₱{{ (salesReport()?.costOfNormalProductSold ?? 0) | number:'1.2-2' }}
+                  </div>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-slate-200 text-slate-600 flex items-center justify-center font-bold">
+                  📉
+                </div>
+              </div>
+            </div>
+
+            <!-- Margin Card -->
+            <div class="rounded-2xl bg-purple-900 text-white p-5 sm:p-6 shadow-sm transition hover:shadow-md">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-xs font-bold uppercase tracking-widest text-purple-200">Margin</div>
+                  <div class="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight">
+                    ₱{{ (salesReport()?.margin ?? 0) | number:'1.2-2' }}
+                  </div>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-purple-800 text-purple-200 flex items-center justify-center font-bold">
+                  📊
+                </div>
+              </div>
+            </div>
+
+            <!-- Profit Card (Magenta / Vibrant accent) -->
+            <div class="rounded-2xl bg-gradient-to-r from-fuchsia-700 to-pink-600 text-white p-5 sm:p-6 shadow-sm transition hover:shadow-md">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-xs font-bold uppercase tracking-widest text-pink-200">Profit</div>
+                  <div class="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight">
+                    ₱{{ (salesReport()?.profit ?? 0) | number:'1.2-2' }}
+                  </div>
+                </div>
+                <div class="w-10 h-10 rounded-xl bg-pink-800/50 text-white flex items-center justify-center font-bold">
+                  💰
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+      }
+
+      <!-- ================= STOCK INSIGHTS SECTION ================= -->
+      @if (activeTab() === 'all' || activeTab() === 'stock') {
+        <section class="rounded-[28px] border border-slate-200 bg-white p-6 sm:p-8 shadow-sm space-y-6 flex flex-col justify-between">
+          
+          <!-- Section Header -->
+          <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-2xl bg-gradient-to-br from-purple-700 to-indigo-700 flex items-center justify-center text-white shadow-sm font-bold">
+                📦
+              </div>
+              <div>
+                <h2 class="text-xl font-bold text-slate-900">Stock Insights</h2>
+                <p class="text-xs text-slate-500">Valuation, potential margin & top moving items</p>
+              </div>
+            </div>
+            @if (stockLoading()) {
+              <div class="inline-flex items-center gap-1.5 text-xs font-semibold text-orange-600 bg-orange-50 px-2.5 py-1 rounded-full">
+                <span class="w-2 h-2 rounded-full bg-orange-500 animate-pulse"></span>
+                <span>Loading</span>
+              </div>
+            }
+          </div>
+
+          @if (stockError()) {
+            <div class="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 flex items-center justify-between">
+              <span>{{ stockError() }}</span>
+              <button type="button" (click)="loadStockInsights(startDate(), endDate())" class="font-semibold text-red-800 underline hover:no-underline">Retry</button>
+            </div>
+          }
+
+          <!-- 3 Top Metric Cards (Inventory Price, Cost, Potential Sales Margin) -->
+          <div class="space-y-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              
+              <!-- Inventory Price -->
+              <div class="rounded-2xl bg-gradient-to-br from-fuchsia-700 to-pink-600 text-white p-5 shadow-sm">
+                <div class="text-2xl sm:text-3xl font-extrabold tracking-tight">
+                  ₱{{ (stockInsights()?.totalInventoryPrice ?? 0) | number:'1.0-2' }}
+                </div>
+                <div class="mt-2 text-xs font-bold uppercase tracking-wider text-pink-200">
+                  Inventory Price
+                </div>
+              </div>
+
+              <!-- Inventory Cost -->
+              <div class="rounded-2xl bg-purple-900 text-white p-5 shadow-sm">
+                <div class="text-2xl sm:text-3xl font-extrabold tracking-tight">
+                  ₱{{ (stockInsights()?.inventoryCost ?? 0) | number:'1.0-2' }}
+                </div>
+                <div class="mt-2 text-xs font-bold uppercase tracking-wider text-purple-200">
+                  Inventory Cost
+                </div>
+              </div>
+            </div>
+
+            <!-- Potential Sales Margin (Full-width card) -->
+            <div class="rounded-2xl bg-gradient-to-r from-fuchsia-700 to-pink-600 text-white p-5 sm:p-6 shadow-sm text-center">
+              <div class="text-3xl sm:text-4xl font-extrabold tracking-tight">
+                ₱{{ (stockInsights()?.potentialSalesMargin ?? 0) | number:'1.0-2' }}
+              </div>
+              <div class="mt-2 text-xs font-bold uppercase tracking-wider text-pink-100">
+                Potential Sales Margin
+              </div>
+            </div>
+          </div>
+
+          <!-- TOP MOVING PRODUCTS Table Section -->
+          <div class="space-y-3 pt-2">
+            <div class="flex items-center justify-between">
+              <h3 class="text-xs sm:text-sm font-extrabold uppercase tracking-widest text-slate-700">
+                Top Moving Products
+              </h3>
+              <span class="text-xs font-medium text-slate-500">{{ topMovingProducts().length }} product(s)</span>
+            </div>
+
+            <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white shadow-sm">
+              <table class="min-w-full divide-y divide-slate-200 text-left text-sm">
+                <thead class="bg-slate-50 text-xs font-bold uppercase tracking-wider text-slate-500">
+                  <tr>
+                    <th scope="col" class="px-4 py-3">Product</th>
+                    <th scope="col" class="px-4 py-3 text-right">Qty</th>
+                    <th scope="col" class="px-4 py-3 text-right">Price</th>
+                    <th scope="col" class="px-4 py-3 text-right text-red-600 font-bold">Cost</th>
+                    <th scope="col" class="px-4 py-3 text-right text-fuchsia-600 font-bold">Margin</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-100 bg-white">
+                  @for (item of topMovingProducts(); track $index) {
+                    <tr class="hover:bg-slate-50/80 transition-colors">
+                      <td class="px-4 py-3 font-semibold text-slate-900 whitespace-nowrap">
+                        {{ item.product || 'Unnamed Product' }}
+                      </td>
+                      <td class="px-4 py-3 text-right text-slate-700 whitespace-nowrap">
+                        {{ item.quantity | number:'1.0-2' }}
+                      </td>
+                      <td class="px-4 py-3 text-right text-slate-700 whitespace-nowrap">
+                        ₱{{ item.unitPrice | number:'1.2-2' }}
+                      </td>
+                      <td class="px-4 py-3 text-right text-slate-700 whitespace-nowrap">
+                        ₱{{ item.capitalPrice | number:'1.2-2' }}
+                      </td>
+                      <td class="px-4 py-3 text-right font-bold text-fuchsia-700 whitespace-nowrap">
+                        ₱{{ item.margin | number:'1.2-2' }}
+                      </td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td colspan="5" class="px-4 py-10 text-center text-sm text-slate-500">
+                        No data available.
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </section>
+      }
+
+    </div>
+
+  </div>
+</div>
+

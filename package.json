@@ -1,0 +1,52 @@
+{
+  "name": "angularstore",
+  "version": "0.0.0",
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng test",
+    "serve:ssr:angularstore": "node dist/angularstore/server/server.mjs"
+  },
+  "private": true,
+  "packageManager": "npm@11.4.2",
+  "dependencies": {
+    "@angular/animations": "^22.0.3",
+    "@angular/common": "^22.0.4",
+    "@angular/compiler": "^22.0.3",
+    "@angular/core": "^22.0.3",
+    "@angular/forms": "^22.0.4",
+    "@angular/platform-browser": "^22.0.4",
+    "@angular/platform-server": "^22.0.4",
+    "@angular/router": "^22.0.4",
+    "@angular/ssr": "^22.0.4",
+    "@azure/msal-angular": "^5.1.4",
+    "@azure/msal-browser": "^5.6.3",
+    "express": "^5.1.0",
+    "node-gyp-build-optional-packages": "^5.2.2",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@angular/build": "^22.0.4",
+    "@angular/cli": "^22.0.4",
+    "@angular/compiler-cli": "^22.0.4",
+    "@tailwindcss/postcss": "^4.1.12",
+    "@types/express": "^5.0.1",
+    "@types/jasmine": "^6.0.0",
+    "@types/node": "^20.17.19",
+    "jsdom": "^28.0.0",
+    "postcss": "^8.5.3",
+    "prettier": "^3.8.1",
+    "tailwindcss": "^4.1.12",
+    "typescript": "^6.0.3",
+    "vitest": "^4.0.8"
+  },
+  "allowScripts": {
+    "esbuild@0.28.1": true,
+    "@parcel/watcher@2.5.6": true,
+    "lmdb@3.5.4": true,
+    "msgpackr-extract@3.0.4": true
+  }
+}

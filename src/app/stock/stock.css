@@ -1,0 +1,33 @@
+/* Custom styles for stock component */
+
+.overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+.product-table-compact th,
+.product-table-compact td {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+}
+
+.product-table-compact tbody tr {
+  transition: background-color 120ms ease-in-out;
+}
+
+.product-table-compact tbody tr:hover {
+  background-color: #f3f4f6;
+}

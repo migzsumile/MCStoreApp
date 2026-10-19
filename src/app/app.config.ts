@@ -36,7 +36,9 @@ export function MSALInstanceFactory(): IPublicClientApplication {
 
 export function MSALInterceptorConfigFactory() {
   const protectedResourceMap = new Map<string, Array<string>>();
-  protectedResourceMap.set(environment.apiUrl, environment.azureAd.scopes);
+  if (environment.azureAd.enabled) {
+    protectedResourceMap.set(environment.apiUrl, environment.azureAd.scopes);
+  }
 
   return {
     interactionType: InteractionType.Redirect,

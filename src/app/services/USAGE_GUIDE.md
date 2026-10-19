@@ -202,13 +202,20 @@ export const environment = {
   production: false,
   apiUrl: 'https://localhost:7290/',
   azureAd: {
-    clientId: '4160eb1a-ac43-4678-ac91-de1a7722202a',
-    authority: 'https://login.microsoftonline.com/6883610c-d54f-4e57-a120-d19cd731f539',
-    redirectUri: 'http://localhost:4200/',
-    scopes: ['api://18708187-1ac0-4975-847b-4ca049e5bbc9/user_impersonation']
+    enabled: false,
+    clientId: '',
+    authority: '',
+    redirectUri: '',
+    scopes: ['']
   }
 };
 ```
+
+Set `azureAd.enabled` to `false` in the local environment to browse the app
+without signing in. This skips the Azure AD route guard, redirect handling, and
+token acquisition, and sends API requests without an authorization header.
+Anonymous API calls still require the backend to allow them. Production keeps
+Azure AD enabled in `src/environments/environment.prod.ts`.
 
 ## Best Practices
 

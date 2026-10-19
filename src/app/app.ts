@@ -3,6 +3,7 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MsalService } from '@azure/msal-angular';
+import { environment } from '../environments/environment';
 
 export interface NavItem {
   label: string;
@@ -41,7 +42,9 @@ export class App implements OnInit {
   ];
 
   ngOnInit() {
-    this.msalService.handleRedirectObservable().subscribe();
+    if (environment.azureAd.enabled) {
+      this.msalService.handleRedirectObservable().subscribe();
+    }
   }
 
   onHamburgerClick(): void {
@@ -86,4 +89,3 @@ export class App implements OnInit {
     this.showPassword.update(v => !v);
   }
 }
-

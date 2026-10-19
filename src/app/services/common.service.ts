@@ -82,6 +82,12 @@ export class CommonService {
    * Get authorization headers with Bearer token
    */
   private getAuthHeaders(token: string): HttpHeaders {
+    if (!environment.azureAd.enabled) {
+      return new HttpHeaders({
+        'Content-Type': 'application/json'
+      });
+    }
+
     return new HttpHeaders({
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'

@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { MsalService, MsalBroadcastService } from '@azure/msal-angular';
 import { environment } from '../../environments/environment';
-import { Observable, from, BehaviorSubject, firstValueFrom } from 'rxjs';
+import { Observable, from, BehaviorSubject, of } from 'rxjs';
 import { map, tap, catchError, filter } from 'rxjs/operators';
 import { AuthenticationResult } from '@azure/msal-browser';
 
@@ -19,6 +19,10 @@ export class AuthService {
    * @returns Observable<string> - Access token
    */
   getAccessToken(): Observable<string> {
+    if (!environment.azureAd.enabled) {
+      return of('');
+    }
+
     return from(this.acquireTokenSilent()).pipe(
       map(result => result.accessToken),
       tap(token => this.tokenSubject.next(token)),
@@ -64,7 +68,7 @@ export class AuthService {
    * @returns boolean
    */
   isAuthenticated(): boolean {
-    return this.msalService.instance.getAllAccounts().length > 0;
+    return !environment.azureAd.enabled || this.msalService.instance.getAllAccounts().length > 0;
   }
 
   /**
@@ -96,6 +100,10 @@ export class AuthService {
    * Get the current user account
    */
   getCurrentAccount() {
+    if (!environment.azureAd.enabled) {
+      return null;
+    }
+
     const accounts = this.msalService.instance.getAllAccounts();
     return accounts.length > 0 ? accounts[0] : null;
   }
@@ -112,8 +120,9 @@ export class AuthService {
    * Logout the user
    */
   logout(): void {
-    this.msalService.logoutRedirect();
     this.tokenSubject.next(null);
+    if (environment.azureAd.enabled) {
+      this.msalService.logoutRedirect();
+    }
   }
 }
-

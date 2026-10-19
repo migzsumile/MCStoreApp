@@ -2,6 +2,7 @@ export const environment = {
   production: true,
   apiUrl: '',
   azureAd: {
+    enabled: true,
     clientId: '',
     authority: '',
     redirectUri: '',
